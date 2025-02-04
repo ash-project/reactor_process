@@ -7,6 +7,250 @@ An extensions which provides steps for working with supervisors.
 
 
 
+### reactor.start_link
+```elixir
+start_link name
+```
+
+
+Starts a process which is linked to the process running the Reactor.
+
+See the documentation for `Reactor.Process.Step.StartLink` for more information.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-start_link-wait_for)
+ * [child_spec](#reactor-start_link-child_spec)
+ * [guard](#reactor-start_link-guard)
+ * [where](#reactor-start_link-where)
+
+
+### Examples
+```
+start_link :supervisor do
+  child_spec {Supervisor, name: __MODULE__.Supervisor})
+end
+
+```
+
+```
+input :initial_value
+
+start_link :agent do
+  child_spec result(:value), transform: &{Agent, fn -> &1 end}
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-start_link-name){: #reactor-start_link-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_link-description){: #reactor-start_link-description } | `String.t` |  | An optional description for the step |
+| [`fail_on_already_started?`](#reactor-start_link-fail_on_already_started?){: #reactor-start_link-fail_on_already_started? } | `boolean` | `true` | Whether the step should fail if the start function returns an already started error |
+| [`fail_on_ignore?`](#reactor-start_link-fail_on_ignore?){: #reactor-start_link-fail_on_ignore? } | `boolean` | `true` | Whether the step should fail if the start function returns `:ignore` |
+| [`terminate_on_undo?`](#reactor-start_link-terminate_on_undo?){: #reactor-start_link-terminate_on_undo? } | `boolean` | `true` | Whether to terminate the started process when the Reactor is undoing changes |
+| [`termination_reason`](#reactor-start_link-termination_reason){: #reactor-start_link-termination_reason } | `any` | `:kill` | The reason to give to the process when terminating it |
+| [`termination_timeout`](#reactor-start_link-termination_timeout){: #reactor-start_link-termination_timeout } | `timeout` | `5000` | How long to wait for a process to terminate |
+
+
+### reactor.start_link.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-start_link-wait_for-names){: #reactor-start_link-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_link-wait_for-description){: #reactor-start_link-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.start_link.child_spec
+```elixir
+child_spec source
+```
+
+
+Specifies a child spec as used by a supervisor.
+
+
+
+
+### Examples
+```
+child_spec {Supervisor, name: __MODULE__.Supervisor}
+
+```
+
+```
+child_spec input(:initial_value) do
+  transform fn initial_value ->
+    fn -> initial_value end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`source`](#reactor-start_link-child_spec-source){: #reactor-start_link-child_spec-source .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| {module, keyword} \| module` |  | The child spec |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_link-child_spec-description){: #reactor-start_link-child_spec-description } | `String.t` |  | An optional description for the child spec |
+| [`transform`](#reactor-start_link-child_spec-transform){: #reactor-start_link-child_spec-transform } | `(any -> any) \| module \| nil` |  | An optional transformation function which can be used to modify the child spec before it is passed to the step. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.ChildSpec`
+
+### reactor.start_link.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-start_link-guard-fun){: #reactor-start_link-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_link-guard-description){: #reactor-start_link-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.start_link.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-start_link-where-predicate){: #reactor-start_link-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_link-where-description){: #reactor-start_link-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.StartLink`
+
 
 
 <style type="text/css">.spark-required::after { content: "*"; color: red !important; }</style>
