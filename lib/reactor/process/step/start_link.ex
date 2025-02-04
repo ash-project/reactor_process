@@ -63,7 +63,8 @@ defmodule Reactor.Process.Step.StartLink do
   #{Spark.Options.docs(@opt_schema)}
   """
   use Reactor.Step
-  alias Reactor.Process.Errors.{MissingMiddlewareError, TerminateTimeoutError}
+  alias Reactor.Process.Errors.MissingMiddlewareError
+  import Reactor.Process.Utils
 
   @doc false
   @impl true
@@ -97,7 +98,12 @@ defmodule Reactor.Process.Step.StartLink do
   def undo(process, _, context, options) do
     with {:ok, options} <- Spark.Options.validate(options, @opt_schema) do
       if Keyword.get(options, :terminate_on_undo?, true) do
-        terminate(process, options, context)
+        terminate(
+          process,
+          options[:termination_reason],
+          options[:termination_timeout],
+          context.current_step
+        )
       end
 
       :ok
@@ -143,29 +149,5 @@ defmodule Reactor.Process.Step.StartLink do
     {:ok, module.child_spec([])}
   rescue
     error -> {:error, error}
-  end
-
-  defp terminate(process, options, context) do
-    ref = Process.monitor(process)
-    Process.unlink(process)
-    Process.exit(process, options[:termination_reason])
-
-    timeout = options[:termination_timeout]
-
-    receive do
-      {:DOWN, ^ref, :process, _, _} ->
-        Process.demonitor(ref, [:flush])
-        :ok
-    after
-      timeout ->
-        Process.demonitor(ref, [:flush])
-
-        {:error,
-         TerminateTimeoutError.exception(
-           step: context.current_step,
-           timeout: timeout,
-           process: process
-         )}
-    end
   end
 end

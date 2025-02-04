@@ -7,6 +7,194 @@ An extensions which provides steps for working with supervisors.
 
 
 
+### reactor.process_exit
+```elixir
+process_exit name
+```
+
+
+Send an exit signal with the given `reason` to `process`.
+
+See the documentation for `Process.exit/2` for more information.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-process_exit-wait_for)
+ * [guard](#reactor-process_exit-guard)
+ * [where](#reactor-process_exit-where)
+
+
+### Examples
+```
+process_exit :exit do
+  process result(:server)
+  reason value(:kill)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-process_exit-name){: #reactor-process_exit-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`process`](#reactor-process_exit-process){: #reactor-process_exit-process .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value` |  | The process to terminate |
+| [`reason`](#reactor-process_exit-reason){: #reactor-process_exit-reason .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value` |  | The termination reason |
+| [`description`](#reactor-process_exit-description){: #reactor-process_exit-description } | `String.t` |  | An optional description for the step |
+| [`timeout`](#reactor-process_exit-timeout){: #reactor-process_exit-timeout } | `timeout \| Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value` | `5000` | How long to wait for the process to terminate before timing out |
+| [`wait_for_exit?`](#reactor-process_exit-wait_for_exit?){: #reactor-process_exit-wait_for_exit? } | `boolean` | `false` | Whether to wait until the process exits before continuing |
+
+
+### reactor.process_exit.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-process_exit-wait_for-names){: #reactor-process_exit-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-process_exit-wait_for-description){: #reactor-process_exit-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.process_exit.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-process_exit-guard-fun){: #reactor-process_exit-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-process_exit-guard-description){: #reactor-process_exit-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.process_exit.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-process_exit-where-predicate){: #reactor-process_exit-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-process_exit-where-description){: #reactor-process_exit-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.ProcessExit`
+
+
+
 ### reactor.start_link
 ```elixir
 start_link name

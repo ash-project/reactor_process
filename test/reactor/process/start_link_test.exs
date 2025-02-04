@@ -8,7 +8,9 @@ defmodule Reactor.Process.StartLinkTest do
 
     input :fail?
 
-    start_link(:stub_server, child_spec: {Support.StubServer, [on_init: {:ok, nil}]})
+    start_link :stub_server do
+      child_spec({Support.StubServer, [on_init: {:ok, nil}]})
+    end
 
     flunk :fail, "abort" do
       wait_for :stub_server
