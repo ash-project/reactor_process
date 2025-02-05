@@ -7,8 +7,13 @@ defmodule Reactor.Process do
     dsl_patches:
       Enum.map(
         [
+          Reactor.Process.Dsl.CountChildren,
+          Reactor.Process.Dsl.DeleteChild,
           Reactor.Process.Dsl.ProcessExit,
-          Reactor.Process.Dsl.StartLink
+          Reactor.Process.Dsl.RestartChild,
+          Reactor.Process.Dsl.StartChild,
+          Reactor.Process.Dsl.StartLink,
+          Reactor.Process.Dsl.TerminateChild
         ],
         &%Spark.Dsl.Patch.AddEntity{section_path: [:reactor], entity: &1.__entity__()}
       ),

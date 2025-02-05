@@ -6,6 +6,8 @@ defmodule Reactor.Process.Errors.TerminateTimeoutError do
   use Reactor.Error, fields: [:process, :step, :timeout], class: :invalid
   import Reactor.Error.Utils
 
+  @type t :: Exception.t()
+
   @doc false
   @impl true
   def message(error) do

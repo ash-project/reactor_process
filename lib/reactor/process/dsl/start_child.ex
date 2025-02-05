@@ -1,17 +1,19 @@
-defmodule Reactor.Process.Dsl.StartLink do
+defmodule Reactor.Process.Dsl.StartChild do
   @moduledoc """
-  The `start_link` DSL entity for the `Reactor.Process` DSL extension.
+  A `start_child` DSL entity for the `Reactor.Process` DSL extension.
   """
-  alias Reactor.{Dsl.Argument, Dsl.Guard, Dsl.WaitFor, Dsl.Where, Process.Dsl.ChildSpec}
+  alias Reactor.{Dsl.Argument, Dsl.Guard, Dsl.WaitFor, Dsl.Where, Process.Dsl.ChildSpec, Template}
 
   defstruct __identifier__: nil,
             arguments: [],
             child_spec: nil,
             description: nil,
+            fail_on_already_present?: true,
             fail_on_already_started?: true,
-            fail_on_ignore?: true,
             guards: [],
+            module: Supervisor,
             name: nil,
+            supervisor: nil,
             terminate_on_undo?: true,
             termination_reason: :normal,
             termination_timeout: 5_000
@@ -21,10 +23,12 @@ defmodule Reactor.Process.Dsl.StartLink do
           arguments: [Argument.t()],
           child_spec: ChildSpec.t(),
           description: nil | String.t(),
+          fail_on_already_present?: boolean,
           fail_on_already_started?: boolean,
-          fail_on_ignore?: boolean,
           guards: [Reactor.Guard.Build.t()],
+          module: module,
           name: any,
+          supervisor: Template.t() | Supervisor.supervisor(),
           terminate_on_undo?: boolean,
           termination_reason: any,
           termination_timeout: timeout
@@ -33,23 +37,21 @@ defmodule Reactor.Process.Dsl.StartLink do
   @doc false
   def __entity__,
     do: %Spark.Dsl.Entity{
-      name: :start_link,
+      name: :start_child,
       describe: """
-      Starts a process which is linked to the process running the Reactor.
+      Adds a child specification to a supervisor and starts that child.
 
-      See the documentation for `Reactor.Process.Step.StartLink` for more information.
+      See the documentation for `Supervisor.start_child/2` for more information.
       """,
       examples: [
         """
         start_link :supervisor do
-          child_spec {Supervisor, name: __MODULE__.Supervisor})
+          child_spec value({Supervisor, strategy: :one_for_one}
         end
-        """,
-        """
-        input :initial_value
 
-        start_link :agent do
-          child_spec result(:value), transform: &{Agent, fn -> &1 end}
+        start_child :worker do
+          supervisor result(:supervisor)
+          child_spec value({Agent, initial_value: 0})
         end
         """
       ],
@@ -76,18 +78,39 @@ defmodule Reactor.Process.Dsl.StartLink do
           required: false,
           doc: "An optional description for the step"
         ],
+        supervisor: [
+          type:
+            {:or,
+             [
+               Template.type(),
+               :pid,
+               :atom,
+               {:tuple, [{:literal, :global}, :any]},
+               {:tuple, [{:literal, :via}, :module, :any]},
+               {:tuple, [:atom, :atom]}
+             ]},
+          required: true,
+          doc: "The supervisor to query"
+        ],
+        module: [
+          type: :module,
+          required: false,
+          default: Supervisor,
+          doc: "The module to use. Must export `start_child/2`"
+        ],
+        fail_on_already_present?: [
+          type: :boolean,
+          required: false,
+          default: true,
+          doc:
+            "Whether the step should fail if the child spec is already present in the supervisor"
+        ],
         fail_on_already_started?: [
           type: :boolean,
           required: false,
           default: true,
           doc:
             "Whether the step should fail if the start function returns an already started error"
-        ],
-        fail_on_ignore?: [
-          type: :boolean,
-          required: false,
-          default: true,
-          doc: "Whether the step should fail if the start function returns `:ignore`"
         ],
         terminate_on_undo?: [
           type: :boolean,

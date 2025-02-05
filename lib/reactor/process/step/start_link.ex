@@ -89,6 +89,10 @@ defmodule Reactor.Process.Step.StartLink do
 
   @doc false
   @impl true
+  def async?(_), do: false
+
+  @doc false
+  @impl true
   def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :terminate_on_undo?, true)
   def can?(_, :undo), do: false
   def can?(step, capability), do: super(step, capability)
@@ -104,9 +108,9 @@ defmodule Reactor.Process.Step.StartLink do
           options[:termination_timeout],
           context.current_step
         )
+      else
+        :ok
       end
-
-      :ok
     end
   end
 
@@ -135,19 +139,5 @@ defmodule Reactor.Process.Step.StartLink do
       {:error, reason} ->
         {:error, reason}
     end
-  end
-
-  defp start_child(_, _), do: {:error, "Invalid child spec"}
-
-  defp child_spec({module, opts}) do
-    {:ok, module.child_spec(opts)}
-  rescue
-    error -> {:error, error}
-  end
-
-  defp child_spec(module) do
-    {:ok, module.child_spec([])}
-  rescue
-    error -> {:error, error}
   end
 end

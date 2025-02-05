@@ -7,6 +7,382 @@ An extensions which provides steps for working with supervisors.
 
 
 
+### reactor.count_children
+```elixir
+count_children name
+```
+
+
+Returns information about a Supervisor's children.
+
+See the documentation for `Supervisor.count_children/1` for more information.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-count_children-wait_for)
+ * [guard](#reactor-count_children-guard)
+ * [where](#reactor-count_children-where)
+
+
+### Examples
+```
+start_link :supervisor do
+  child_spec value({Supervisor, strategy: :one_for_one}
+end
+
+count_children :children do
+  supervisor result(:supervisor)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-count_children-name){: #reactor-count_children-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`supervisor`](#reactor-count_children-supervisor){: #reactor-count_children-supervisor .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| pid \| atom \| {:global, any} \| {:via, module, any} \| {atom, atom}` |  | The supervisor to query |
+| [`description`](#reactor-count_children-description){: #reactor-count_children-description } | `String.t` |  | An optional description for the step |
+| [`module`](#reactor-count_children-module){: #reactor-count_children-module } | `module` | `Supervisor` | The module to use. Must export `count_children/1` |
+
+
+### reactor.count_children.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-count_children-wait_for-names){: #reactor-count_children-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-count_children-wait_for-description){: #reactor-count_children-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.count_children.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-count_children-guard-fun){: #reactor-count_children-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-count_children-guard-description){: #reactor-count_children-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.count_children.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-count_children-where-predicate){: #reactor-count_children-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-count_children-where-description){: #reactor-count_children-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.CountChildren`
+
+
+
+### reactor.delete_child
+```elixir
+delete_child name
+```
+
+
+Deletes a child specification by id from a Supervisor.
+
+See the documentation for `Supervisor.delete_child/2` for more information.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-delete_child-wait_for)
+ * [guard](#reactor-delete_child-guard)
+ * [where](#reactor-delete_child-where)
+
+
+### Examples
+```
+delete_child :delete_child do
+  supervisor input(:supervisor)
+  child_id input(:child_id)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-delete_child-name){: #reactor-delete_child-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`supervisor`](#reactor-delete_child-supervisor){: #reactor-delete_child-supervisor .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| pid \| atom \| {:global, any} \| {:via, module, any} \| {atom, atom}` |  | The supervisor to query |
+| [`child_id`](#reactor-delete_child-child_id){: #reactor-delete_child-child_id .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value` |  | The ID for the child spec to remove |
+| [`description`](#reactor-delete_child-description){: #reactor-delete_child-description } | `String.t` |  | An optional description for the step |
+| [`module`](#reactor-delete_child-module){: #reactor-delete_child-module } | `module` | `Supervisor` | The module to use. Must export `count_children/1` |
+
+
+### reactor.delete_child.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-delete_child-wait_for-names){: #reactor-delete_child-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-delete_child-wait_for-description){: #reactor-delete_child-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.delete_child.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-delete_child-guard-fun){: #reactor-delete_child-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-delete_child-guard-description){: #reactor-delete_child-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.delete_child.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-delete_child-where-predicate){: #reactor-delete_child-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-delete_child-where-description){: #reactor-delete_child-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.DeleteChild`
+
+
+
 ### reactor.process_exit
 ```elixir
 process_exit name
@@ -192,6 +568,437 @@ Target: `Reactor.Dsl.Where`
 ### Introspection
 
 Target: `Reactor.Process.Dsl.ProcessExit`
+
+
+
+### reactor.restart_child
+```elixir
+restart_child name
+```
+
+
+Restarts a child process identified by child_id.
+
+See `Supervisor.restart_child/2` for more information.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-restart_child-wait_for)
+ * [guard](#reactor-restart_child-guard)
+ * [where](#reactor-restart_child-where)
+
+
+### Examples
+```
+restart_child :restart_child do
+  supervisor input(:supervisor)
+  child_id input(:child_id)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-restart_child-name){: #reactor-restart_child-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`supervisor`](#reactor-restart_child-supervisor){: #reactor-restart_child-supervisor .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| pid \| atom \| {:global, any} \| {:via, module, any} \| {atom, atom}` |  | The supervisor to query |
+| [`child_id`](#reactor-restart_child-child_id){: #reactor-restart_child-child_id .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value` |  | The ID for the child spec to restart |
+| [`description`](#reactor-restart_child-description){: #reactor-restart_child-description } | `String.t` |  | An optional description for the step |
+| [`module`](#reactor-restart_child-module){: #reactor-restart_child-module } | `module` | `Supervisor` | The module to use. Must export `restart_child/2` |
+
+
+### reactor.restart_child.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-restart_child-wait_for-names){: #reactor-restart_child-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-restart_child-wait_for-description){: #reactor-restart_child-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.restart_child.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-restart_child-guard-fun){: #reactor-restart_child-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-restart_child-guard-description){: #reactor-restart_child-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.restart_child.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-restart_child-where-predicate){: #reactor-restart_child-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-restart_child-where-description){: #reactor-restart_child-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.RestartChild`
+
+
+
+### reactor.start_child
+```elixir
+start_child name
+```
+
+
+Adds a child specification to a supervisor and starts that child.
+
+See the documentation for `Supervisor.start_child/2` for more information.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-start_child-wait_for)
+ * [child_spec](#reactor-start_child-child_spec)
+ * [guard](#reactor-start_child-guard)
+ * [where](#reactor-start_child-where)
+
+
+### Examples
+```
+start_link :supervisor do
+  child_spec value({Supervisor, strategy: :one_for_one}
+end
+
+start_child :worker do
+  supervisor result(:supervisor)
+  child_spec value({Agent, initial_value: 0})
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-start_child-name){: #reactor-start_child-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`supervisor`](#reactor-start_child-supervisor){: #reactor-start_child-supervisor .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| pid \| atom \| {:global, any} \| {:via, module, any} \| {atom, atom}` |  | The supervisor to query |
+| [`description`](#reactor-start_child-description){: #reactor-start_child-description } | `String.t` |  | An optional description for the step |
+| [`module`](#reactor-start_child-module){: #reactor-start_child-module } | `module` | `Supervisor` | The module to use. Must export `start_child/2` |
+| [`fail_on_already_present?`](#reactor-start_child-fail_on_already_present?){: #reactor-start_child-fail_on_already_present? } | `boolean` | `true` | Whether the step should fail if the child spec is already present in the supervisor |
+| [`fail_on_already_started?`](#reactor-start_child-fail_on_already_started?){: #reactor-start_child-fail_on_already_started? } | `boolean` | `true` | Whether the step should fail if the start function returns an already started error |
+| [`terminate_on_undo?`](#reactor-start_child-terminate_on_undo?){: #reactor-start_child-terminate_on_undo? } | `boolean` | `true` | Whether to terminate the started process when the Reactor is undoing changes |
+| [`termination_reason`](#reactor-start_child-termination_reason){: #reactor-start_child-termination_reason } | `any` | `:kill` | The reason to give to the process when terminating it |
+| [`termination_timeout`](#reactor-start_child-termination_timeout){: #reactor-start_child-termination_timeout } | `timeout` | `5000` | How long to wait for a process to terminate |
+
+
+### reactor.start_child.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-start_child-wait_for-names){: #reactor-start_child-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_child-wait_for-description){: #reactor-start_child-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.start_child.child_spec
+```elixir
+child_spec source
+```
+
+
+Specifies a child spec as used by a supervisor.
+
+
+
+
+### Examples
+```
+child_spec {Supervisor, name: __MODULE__.Supervisor}
+
+```
+
+```
+child_spec input(:initial_value) do
+  transform fn initial_value ->
+    fn -> initial_value end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`source`](#reactor-start_child-child_spec-source){: #reactor-start_child-child_spec-source .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| {module, keyword} \| module` |  | The child spec |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_child-child_spec-description){: #reactor-start_child-child_spec-description } | `String.t` |  | An optional description for the child spec |
+| [`transform`](#reactor-start_child-child_spec-transform){: #reactor-start_child-child_spec-transform } | `(any -> any) \| module \| nil` |  | An optional transformation function which can be used to modify the child spec before it is passed to the step. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.ChildSpec`
+
+### reactor.start_child.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-start_child-guard-fun){: #reactor-start_child-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_child-guard-description){: #reactor-start_child-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.start_child.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-start_child-where-predicate){: #reactor-start_child-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-start_child-where-description){: #reactor-start_child-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.StartChild`
 
 
 
@@ -438,6 +1245,209 @@ Target: `Reactor.Dsl.Where`
 ### Introspection
 
 Target: `Reactor.Process.Dsl.StartLink`
+
+
+
+### reactor.terminate_child
+```elixir
+terminate_child name
+```
+
+
+Terminates the given child identified by `child_id`.
+
+See the documentation for `Supervisor.terminate_child/2` for more information.
+
+#### Restarting
+
+When the reactor is undoing changes, it is possible for this step to restart
+the terminated child using `restart_child/2`. Be aware that this will only
+work if the child spec hasn't subsequently been deleted by another step and
+the `restart_child/2` function is present on the module (ie not
+`DynamicSupervisor`).
+
+> #### Child ID {: .tip}
+>
+> The `child_id` argument can take either a traditional child ID (for a
+> traditional `Supervisor`) or a PID (for a `DynamicSupervisor`). It's up to
+> you to make sure you provide the correct inputs.
+
+
+### Nested DSLs
+ * [wait_for](#reactor-terminate_child-wait_for)
+ * [guard](#reactor-terminate_child-guard)
+ * [where](#reactor-terminate_child-where)
+
+
+### Examples
+```
+terminate_child :terminate_child do
+  supervisor input(:supervisor)
+  child_id input(:child_id)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#reactor-terminate_child-name){: #reactor-terminate_child-name .spark-required} | `atom` |  | A unique name for the step. Used when choosing the return value of the Reactor and for arguments into other steps |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`supervisor`](#reactor-terminate_child-supervisor){: #reactor-terminate_child-supervisor .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| pid \| atom \| {:global, any} \| {:via, module, any} \| {atom, atom}` |  | The supervisor to query |
+| [`child_id`](#reactor-terminate_child-child_id){: #reactor-terminate_child-child_id .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value` |  | The ID for the child spec to remove |
+| [`description`](#reactor-terminate_child-description){: #reactor-terminate_child-description } | `String.t` |  | An optional description for the step |
+| [`module`](#reactor-terminate_child-module){: #reactor-terminate_child-module } | `module` | `Supervisor` | The module to use. Must export `start_child/2` |
+| [`fail_on_not_found?`](#reactor-terminate_child-fail_on_not_found?){: #reactor-terminate_child-fail_on_not_found? } | `boolean` | `true` | Whether the step should fail if the no child is found under the `child_id` |
+| [`restart_on_undo?`](#reactor-terminate_child-restart_on_undo?){: #reactor-terminate_child-restart_on_undo? } | `boolean` | `false` | Whether to terminate the started process when the Reactor is undoing changes |
+
+
+### reactor.terminate_child.wait_for
+```elixir
+wait_for names
+```
+
+
+Wait for the named step to complete before allowing this one to start.
+
+Desugars to `argument :_, result(step_to_wait_for)`
+
+
+
+
+### Examples
+```
+wait_for :create_user
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`names`](#reactor-terminate_child-wait_for-names){: #reactor-terminate_child-wait_for-names .spark-required} | `atom \| list(atom)` |  | The name of the step to wait for. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-terminate_child-wait_for-description){: #reactor-terminate_child-wait_for-description } | `String.t` |  | An optional description. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.WaitFor`
+
+### reactor.terminate_child.guard
+```elixir
+guard fun
+```
+
+
+Provides a flexible method for conditionally executing a step, or replacing it's result.
+
+Expects a two arity function which takes the step's arguments and context and returns one of the following:
+
+- `:cont` - the guard has passed.
+- `{:halt, result}` - the guard has failed - instead of executing the step use the provided result.
+
+
+
+
+### Examples
+```
+step :read_file_via_cache do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  guard fn %{path: path}, %{cache: cache} ->
+    case Cache.get(cache, path) do
+      {:ok, content} -> {:halt, {:ok, content}}
+      _ -> :cont
+    end
+  end
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`fun`](#reactor-terminate_child-guard-fun){: #reactor-terminate_child-guard-fun .spark-required} | `(any, any -> any) \| mfa` |  | The guard function. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-terminate_child-guard-description){: #reactor-terminate_child-guard-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Guard`
+
+### reactor.terminate_child.where
+```elixir
+where predicate
+```
+
+
+Only execute the surrounding step if the predicate function returns true.
+
+This is a simple version of `guard` which provides more flexibility at the cost of complexity.
+
+
+
+
+### Examples
+```
+step :read_file do
+  argument :path, input(:path)
+  run &File.read(&1.path)
+  where &File.exists?(&1.path)
+end
+
+```
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`predicate`](#reactor-terminate_child-where-predicate){: #reactor-terminate_child-where-predicate .spark-required} | `(any -> any) \| mfa \| (any, any -> any) \| mfa` |  | Provide a function which takes the step arguments and optionally the context and returns a boolean value. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`description`](#reactor-terminate_child-where-description){: #reactor-terminate_child-where-description } | `String.t` |  | An optional description of the guard. |
+
+
+
+
+
+### Introspection
+
+Target: `Reactor.Dsl.Where`
+
+
+
+
+### Introspection
+
+Target: `Reactor.Process.Dsl.TerminateChild`
 
 
 
