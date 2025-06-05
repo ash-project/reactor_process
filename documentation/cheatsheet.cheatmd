@@ -1,0 +1,326 @@
+# Reactor Process Cheatsheet
+
+Process and supervisor management for [Reactor](https://hex.pm/packages/reactor) workflows.
+
+## Basic Usage {: .col-2}
+
+### Extension Setup
+
+```elixir
+defmodule MyReactor do
+  use Reactor, extensions: [Reactor.Process]
+
+  # Your reactor steps here
+end
+```
+
+### Child Specification
+
+```elixir
+# Simple module child spec
+child_spec :worker_spec do
+  module MyWorker
+end
+
+# Module with options
+child_spec :server_spec do
+  module {MyServer, [port: 4000]}
+end
+
+# Dynamic child spec with transform
+child_spec :dynamic_spec do
+  module input(:base_module)
+  transform fn {mod, opts}, inputs ->
+    {mod, Keyword.put(opts, :name, inputs.worker_name)}
+  end
+end
+```
+
+## Process Lifecycle {: .col-2}
+
+### Starting Processes
+
+```elixir
+# Start and link a process
+start_link :worker do
+  child_spec result(:worker_spec)
+end
+
+# Start child under supervisor
+start_child :server do
+  supervisor input(:my_supervisor)
+  child_spec result(:server_spec)
+end
+
+# Don't fail if already started
+start_child :idempotent_worker do
+  supervisor input(:supervisor)
+  child_spec result(:worker_spec)
+  fail_on_already_started? false
+end
+```
+
+### Terminating Processes
+
+```elixir
+# Terminate child by ID
+terminate_child :stop_worker do
+  supervisor input(:supervisor)
+  child_id input(:worker_id)
+end
+
+# Terminate with custom timeout
+terminate_child :graceful_stop do
+  supervisor input(:supervisor)  
+  child_id input(:worker_id)
+  module Supervisor
+  timeout 10_000
+end
+
+# Send exit signal to process
+process_exit :kill_worker do
+  process input(:worker_pid)
+  reason :shutdown
+  wait_for_exit? true
+  timeout 5_000
+end
+```
+
+## Supervisor Management {: .col-2}
+
+### Child Management
+
+```elixir
+# Restart a child
+restart_child :restart_worker do
+  supervisor input(:supervisor)
+  child_id input(:worker_id)
+end
+
+# Remove child specification
+delete_child :cleanup_spec do
+  supervisor input(:supervisor)
+  child_id input(:worker_id)
+end
+
+# Count supervisor children
+count_children :get_stats do
+  supervisor input(:supervisor)
+end
+```
+
+### DynamicSupervisor Support
+
+```elixir
+# Start under DynamicSupervisor
+start_child :dynamic_worker do
+  supervisor input(:dynamic_sup)
+  child_spec result(:worker_spec)
+  module DynamicSupervisor
+end
+
+# Terminate by PID in DynamicSupervisor
+terminate_child :stop_dynamic do
+  supervisor input(:dynamic_sup)
+  child_id input(:worker_pid)  # Use PID for DynamicSupervisor
+  module DynamicSupervisor
+end
+```
+
+## Error Handling {: .col-2}
+
+### Failure Options
+
+```elixir
+# Handle already present scenarios
+start_child :maybe_start do
+  supervisor input(:supervisor)
+  child_spec result(:worker_spec)
+  fail_on_already_present? false
+  fail_on_already_started? false
+end
+
+# Handle missing children gracefully
+terminate_child :maybe_stop do
+  supervisor input(:supervisor)
+  child_id input(:worker_id)
+  fail_on_not_found? false
+end
+```
+
+### Undo Behaviour
+
+```elixir
+# Control undo operations
+start_link :managed_process do
+  child_spec result(:worker_spec)
+  terminate_on_undo? true
+  termination_reason :shutdown
+  termination_timeout 30_000
+end
+
+# Restart on undo
+terminate_child :stoppable do
+  supervisor input(:supervisor)
+  child_id input(:worker_id)
+  restart_on_undo? true
+end
+```
+
+## Advanced Patterns {: .col-2}
+
+### Process Dependencies
+
+```elixir
+# Wait for supervisor to be ready
+start_child :dependent_worker do
+  supervisor result(:supervisor_start)
+  child_spec result(:worker_spec)
+  wait_for [:supervisor_start]
+end
+
+# Sequential process startup
+start_child :worker_a do
+  supervisor input(:supervisor)
+  child_spec result(:spec_a)
+end
+
+start_child :worker_b do
+  supervisor input(:supervisor)
+  child_spec result(:spec_b)
+  wait_for [:worker_a]
+end
+```
+
+## Supervisor References {: .col-2}
+
+### Reference Types
+
+```elixir
+# PID reference
+count_children :by_pid do
+  supervisor input(:supervisor_pid)
+end
+
+# Registered name
+count_children :by_name do
+  supervisor :my_supervisor
+end
+
+# Global registration
+start_child :global_sup do
+  supervisor {:global, :my_global_sup}
+  child_spec result(:worker_spec)
+end
+
+# Via registration
+terminate_child :via_sup do
+  supervisor {:via, Registry, {MyRegistry, "sup_key"}}
+  child_id input(:worker_id)
+end
+
+# Remote node
+restart_child :remote do
+  supervisor {:node1@host, :remote_supervisor}
+  child_id input(:worker_id)
+end
+```
+
+## Monitoring and Introspection
+
+### Supervisor Statistics
+
+```elixir
+# Get child counts
+count_children :supervisor_stats do
+  supervisor input(:supervisor)
+end
+
+# Returns: %{active: 3, specs: 5, supervisors: 1, workers: 4}
+```
+
+### Health Checks
+
+```elixir
+# Count children for health monitoring
+count_children :health_check do
+  supervisor input(:main_supervisor)
+end
+
+# Restart child processes
+restart_child :heal_worker do
+  supervisor input(:supervisor)
+  child_id input(:worker_id)
+end
+```
+
+## Integration Examples
+
+### Complete Workflow
+
+```elixir
+defmodule MyAppReactor do
+  use Reactor, extensions: [Reactor.Process]
+
+  # Define child specs
+  child_spec :database_spec do
+    module {MyApp.Database, []}
+  end
+  
+  child_spec :server_spec do
+    module {MyApp.Server, [port: input(:port)]}
+  end
+
+  # Start supervisor first
+  start_link :main_supervisor do
+    child_spec {Supervisor, strategy: :one_for_one}
+  end
+
+  # Start database
+  start_child :database do
+    supervisor result(:main_supervisor)
+    child_spec result(:database_spec)
+  end
+
+  # Start server after database
+  start_child :server do
+    supervisor result(:main_supervisor)
+    child_spec result(:server_spec)
+    wait_for [:database]
+  end
+
+  # Health monitoring
+  count_children :monitor do
+    supervisor result(:main_supervisor)
+  end
+end
+```
+
+### Error Recovery
+
+```elixir
+defmodule RecoveryReactor do
+  use Reactor, extensions: [Reactor.Process]
+
+  # Try graceful shutdown first
+  terminate_child :graceful_stop do
+    supervisor input(:supervisor)
+    child_id input(:worker_id)
+    fail_on_not_found? false
+  end
+
+  # Force kill if graceful fails
+  process_exit :force_stop do
+    process input(:worker_pid)
+    reason :kill
+    wait_for [:graceful_stop]
+  end
+
+  # Restart clean
+  restart_child :fresh_start do
+    supervisor input(:supervisor)
+    child_id input(:worker_id)
+    wait_for [:force_stop]
+  end
+end
+```
