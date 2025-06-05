@@ -5,6 +5,17 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v0.4.1](https://github.com/ash-project/reactor_process/compare/v0.4.0...v0.4.1) (2025-06-05)
+
+
+
+
+### Improvements:
+
+* As of this commit `reactor_file` is now licensed MIT. by dependabot[bot]
+
+* As of this commit `reactor_file` is now licensed MIT. by James Harton
+
 ## [v0.4.0](https://harton.dev/james/reactor_process/compare/v0.3.0...v0.4.0) (2025-02-06)
 
 
