@@ -16,9 +16,9 @@ defmodule Reactor.Process.MixProject do
       docs: docs(),
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
-      homepage_url: "https://harton.dev/james/reactor_process",
+      homepage_url: "https://github.com/ash-project/reactor_process",
       package: package(),
-      source_url: "https://harton.dev/james/reactor_process",
+      source_url: "https://github.com/ash-project/reactor_process",
       start_permanent: Mix.env() == :prod,
       version: @version
     ]
@@ -35,17 +35,16 @@ defmodule Reactor.Process.MixProject do
     [
       name: :reactor_process,
       files: ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation],
-      licenses: [],
+      licenses: ["MIT"],
       links: %{
-        "Source" => "https://harton.dev/james/reactor_process",
-        "GitHub" => "https://github.com/jimsynz/reactor_process",
-        "Changelog" => "https://harton.dev/james/reactor_process/src/branch/main/CHANGELOG.md",
+        "Source" => "https://github.com/ash-project/reactor_process",
+        "Changelog" => "https://github.com/ash-project/reactor_process/blob/main/CHANGELOG.md",
         "Sponsor" => "https://github.com/sponsors/jimsynz"
       },
       maintainers: [
         "James Harton <james@harton.nz>"
       ],
-      source_url: "https://harton.dev/james/reactor_process"
+      source_url: "https://github.com/ash-project/reactor_process"
     ]
   end
 
@@ -60,6 +59,7 @@ defmodule Reactor.Process.MixProject do
       {:faker, "~> 0.18.0", only: ~w[dev test]a, runtime: false},
       {:git_ops, "~> 2.6", only: ~w[dev test]a, runtime: false},
       {:igniter, "~> 0.6", only: ~w[dev test]a},
+      {:mix_audit, "~> 2.0", only: ~w[dev test]a, runtime: false},
       {:reactor, "== 0.15.4"},
       {:spark, "~> 2.0"}
     ]
@@ -88,7 +88,7 @@ defmodule Reactor.Process.MixProject do
       groups_for_extras: extra_documentation_groups(),
       main: "readme",
       source_url_pattern:
-        "https://harton/dev/james/reactor_process/src/branch/main/%{path}#L%{line}",
+        "https://github.com/ash-project/reactor_process/blob/main/%{path}#L%{line}",
       spark: [
         extension: [
           %{

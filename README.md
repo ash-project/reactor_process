@@ -1,8 +1,11 @@
+<img src="https://github.com/ash-project/reactor/blob/main/logos/reactor-logo-light-small.png?raw=true#gh-light-mode-only" alt="Logo Light" width="250">
+<img src="https://github.com/ash-project/reactor/blob/main/logos/reactor-logo-dark-small.png?raw=true#gh-dark-mode-only" alt="Logo Dark" width="250">
+
 # Reactor.Process
 
-[![Build Status](https://drone.harton.dev/api/badges/james/reactor_process/status.svg)](https://drone.harton.dev/james/reactor_process)
-[![Hex.pm](https://img.shields.io/hexpm/v/reactor_process.svg)](https://hex.pm/packages/reactor_process)
-[![Hippocratic License HL3-FULL](https://img.shields.io/static/v1?label=Hippocratic%20License&message=HL3-FULL&labelColor=5e2751&color=bc8c3d)](https://firstdonoharm.dev/version/3/0/full.html)
+[![Build Status](https://github.com/ash-project/reactor_process/actions/workflows/elixir.yml/badge.svg)](https://github.com/ash-project/reactor/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Hex version badge](https://img.shields.io/hexpm/v/reactor_process.svg)](https://hex.pm/packages/reactor_process)
 
 A [Reactor](https://github.com/ash-project/reactor) extension that provides steps for working with supervisors and processes.
 
@@ -74,20 +77,7 @@ end
 
 Documentation for the latest release is available on [HexDocs](https://hexdocs.pm/reactor_process).
 
-## Github Mirror
+## Licence
 
-This repository is mirrored [on Github](https://github.com/jimsynz/reactor_process)
-from it's primary location [on my Forgejo instance](https://harton.dev/james/reactor_process).
-Feel free to raise issues and open PRs on Github.
-
-## License
-
-This software is licensed under the terms of the
-[HL3-FULL](https://firstdonoharm.dev), see the `LICENSE.md` file included with
-this package for the terms.
-
-This license actively proscribes this software being used by and for some
-industries, countries and activities. If your usage of this software doesn't
-comply with the terms of this license, then [contact me](mailto:james@harton.nz)
-with the details of your use-case to organise the purchase of a license - the
-cost of which may include a donation to a suitable charity or NGO.
+This software is licensed under the terms of the MIT License.
+See the `LICENSE` file included with this package for the terms.
