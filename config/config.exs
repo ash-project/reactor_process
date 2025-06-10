@@ -4,6 +4,7 @@ config :spark, formatter: [remove_parens?: true]
 
 config :git_ops,
   mix_project: Reactor.Process.MixProject,
+  github_handle_lookup?: true,
   changelog_file: "CHANGELOG.md",
   repository_url: "https://github.com/ash-project/reactor_process",
   manage_mix_version?: true,
