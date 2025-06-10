@@ -1,4 +1,4 @@
-defmodule Reactor.Process.MixProject do
+Barnabas Jovanovicsdefmodule Reactor.Process.MixProject do
   @moduledoc """
   A Reactor extension which provides steps for working with supervisors.
   """
@@ -34,7 +34,7 @@ defmodule Reactor.Process.MixProject do
   defp package do
     [
       name: :reactor_process,
-      files: ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation],
+      files: ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation usage-rules.md],
       licenses: ["MIT"],
       links: %{
         "Source" => "https://github.com/ash-project/reactor_process",
