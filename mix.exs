@@ -1,4 +1,4 @@
-Barnabas Jovanovicsdefmodule Reactor.Process.MixProject do
+defmodule Reactor.Process.MixProject do
   @moduledoc """
   A Reactor extension which provides steps for working with supervisors.
   """
