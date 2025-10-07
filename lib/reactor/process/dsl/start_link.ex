@@ -9,6 +9,7 @@ defmodule Reactor.Process.Dsl.StartLink do
   alias Reactor.{Dsl.Argument, Dsl.Guard, Dsl.WaitFor, Dsl.Where, Process.Dsl.ChildSpec}
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             arguments: [],
             child_spec: nil,
             description: nil,
@@ -22,6 +23,7 @@ defmodule Reactor.Process.Dsl.StartLink do
 
   @type t :: %__MODULE__{
           __identifier__: any,
+          __spark_metadata__: Spark.Dsl.Entity.spark_meta(),
           arguments: [Argument.t()],
           child_spec: ChildSpec.t(),
           description: nil | String.t(),
