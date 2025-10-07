@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defimpl Reactor.Dsl.Build, for: Reactor.Process.Dsl.DeleteChild do
   @moduledoc false
   alias Reactor.{Argument, Builder, Template}

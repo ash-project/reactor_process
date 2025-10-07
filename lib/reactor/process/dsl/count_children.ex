@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Dsl.CountChildren do
   @moduledoc """
   A `count_children` DSL entity for the `Reactor.Process` DSL extension.

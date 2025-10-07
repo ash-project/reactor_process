@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Dsl.Transformer do
   @moduledoc false
   alias Spark.Dsl.Transformer

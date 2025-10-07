@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 James Harton
+
+SPDX-License-Identifier: MIT
+-->
+
 # Usage Rules for Reactor Process
 
 This file contains essential information for AI coding agents when working with the `reactor_process` library.

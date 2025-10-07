@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Dsl.StartLink do
   @moduledoc """
   The `start_link` DSL entity for the `Reactor.Process` DSL extension.

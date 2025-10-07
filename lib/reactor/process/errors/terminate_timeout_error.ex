@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Errors.TerminateTimeoutError do
   @moduledoc """
   This exception is returned when a process failed to terminate within the time

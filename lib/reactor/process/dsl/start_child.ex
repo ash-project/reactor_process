@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Dsl.StartChild do
   @moduledoc """
   A `start_child` DSL entity for the `Reactor.Process` DSL extension.
