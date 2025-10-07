@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Support.StubServer do
   @moduledoc false
   use GenServer, restart: :transient

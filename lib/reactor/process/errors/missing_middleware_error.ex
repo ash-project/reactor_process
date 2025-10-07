@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Errors.MissingMiddlewareError do
   @moduledoc """
   This exception is returned when a step wishes to access the owning PID but the

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.MixProject do
   @moduledoc """
   A Reactor extension which provides steps for working with supervisors.
@@ -34,12 +38,15 @@ defmodule Reactor.Process.MixProject do
   defp package do
     [
       name: :reactor_process,
-      files: ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation usage-rules.md],
+      files:
+        ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation usage-rules.md],
       licenses: ["MIT"],
       links: %{
         "Source" => "https://github.com/ash-project/reactor_process",
         "Changelog" => "https://github.com/ash-project/reactor_process/blob/main/CHANGELOG.md",
-        "Sponsor" => "https://github.com/sponsors/jimsynz"
+        "Sponsor" => "https://github.com/sponsors/jimsynz",
+        "REUSE Compliance" =>
+          "https://api.reuse.software/info/github.com/ash-project/reactor_process"
       },
       maintainers: [
         "James Harton <james@harton.nz>"

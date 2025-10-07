@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Utils do
   @moduledoc false
   alias Reactor.Process.Errors.TerminateTimeoutError

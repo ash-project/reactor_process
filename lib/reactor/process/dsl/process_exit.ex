@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Dsl.ProcessExit do
   @moduledoc """
   The `process_exit` DSL entity for the `Reactor.Process` DSL extension.

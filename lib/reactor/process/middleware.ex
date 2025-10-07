@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Middleware do
   @moduledoc """
   A Reactor middleware which records the pid of the original starting process.

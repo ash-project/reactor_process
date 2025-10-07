@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Reactor.Process.Step.DeleteChild do
   @arg_schema Spark.Options.new!(
                 supervisor: [
