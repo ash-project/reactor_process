@@ -9,6 +9,7 @@ defmodule Reactor.Process.Dsl.ProcessExit do
   alias Reactor.{Dsl.Argument, Dsl.Guard, Dsl.WaitFor, Dsl.Where, Template}
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             arguments: [],
             guards: [],
             name: nil,
@@ -19,6 +20,7 @@ defmodule Reactor.Process.Dsl.ProcessExit do
 
   @type t :: %__MODULE__{
           __identifier__: any,
+          __spark_metadata__: Spark.Dsl.Entity.spark_meta(),
           arguments: [Argument.t()],
           guards: [Reactor.Guard.Build.t()],
           name: any,

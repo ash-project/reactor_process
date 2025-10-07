@@ -9,6 +9,7 @@ defmodule Reactor.Process.Dsl.CountChildren do
   alias Reactor.{Dsl.Argument, Dsl.Guard, Dsl.WaitFor, Dsl.Where, Template}
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             arguments: [],
             description: nil,
             guards: [],
@@ -18,6 +19,7 @@ defmodule Reactor.Process.Dsl.CountChildren do
 
   @type t :: %__MODULE__{
           __identifier__: any,
+          __spark_metadata__: Spark.Dsl.Entity.spark_meta(),
           arguments: [Argument.t()],
           description: nil | String.t(),
           guards: [Reactor.Guard.Build.t()],

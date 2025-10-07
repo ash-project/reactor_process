@@ -10,12 +10,14 @@ defmodule Reactor.Process.Dsl.ChildSpec do
   alias Reactor.{Dsl.Argument, Template}
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             description: nil,
             source: nil,
             transform: nil
 
   @type t :: %__MODULE__{
           __identifier__: any,
+          __spark_metadata__: Spark.Dsl.Entity.spark_meta(),
           description: nil | String.t(),
           source: Template.t() | Supervisor.module_spec(),
           transform: nil | (any -> Supervisor.module_spec()) | {module, keyword} | mfa

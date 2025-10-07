@@ -9,6 +9,7 @@ defmodule Reactor.Process.Dsl.DeleteChild do
   alias Reactor.{Dsl.Argument, Dsl.Guard, Dsl.WaitFor, Dsl.Where, Template}
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             arguments: [],
             child_id: nil,
             description: nil,
@@ -19,6 +20,7 @@ defmodule Reactor.Process.Dsl.DeleteChild do
 
   @type t :: %__MODULE__{
           __identifier__: any,
+          __spark_metadata__: Spark.Dsl.Entity.spark_meta(),
           arguments: [Argument.t()],
           child_id: Template.t(),
           description: nil | String.t(),

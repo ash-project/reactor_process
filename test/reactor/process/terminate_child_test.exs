@@ -5,6 +5,7 @@
 defmodule Reactor.Process.TerminateChildTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  import ExUnit.CaptureIO
 
   defmodule TerminateChildReactor do
     @moduledoc false
@@ -60,18 +61,21 @@ defmodule Reactor.Process.TerminateChildTest do
   end
 
   test "it fails verification when `restart_on_undo?` is `true` but the module doesn't support it" do
-    assert_raise(Spark.Error.DslError, ~r/does not export/, fn ->
-      defmodule FailVerificationReactor do
-        @moduledoc false
-        use Reactor, extensions: [Reactor.Process]
+    logs =
+      capture_io(:stderr, fn ->
+        defmodule FailVerificationReactor do
+          @moduledoc false
+          use Reactor, extensions: [Reactor.Process]
 
-        terminate_child :terminate_child do
-          supervisor value(MyApp.Supervisor)
-          child_id value(MyApp.Worker)
-          restart_on_undo? true
-          module DynamicSupervisor
+          terminate_child :terminate_child do
+            supervisor value(MyApp.Supervisor)
+            child_id value(MyApp.Worker)
+            restart_on_undo? true
+            module DynamicSupervisor
+          end
         end
-      end
-    end)
+      end)
+
+    assert logs =~ "does not export"
   end
 end
