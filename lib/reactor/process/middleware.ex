@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 reactor_process contributors <https://github.com/ash-project/reactor_process/graphs.contributors>
+# SPDX-FileCopyrightText: 2025 reactor_process contributors <https://github.com/ash-project/reactor_process/graphs/contributors>
 #
 # SPDX-License-Identifier: MIT
 
