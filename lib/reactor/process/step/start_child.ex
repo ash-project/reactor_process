@@ -101,16 +101,15 @@ defmodule Reactor.Process.Step.StartChild do
   @impl true
   def undo(pid, arguments, context, options) do
     with {:ok, arguments} <- Spark.Options.validate(Enum.to_list(arguments), @arg_schema),
-         {:ok, options} <- Spark.Options.validate(options, @opt_schema) do
-      if Keyword.get(options, :terminate_on_undo?, true) do
-        with {:ok, %{id: id}} <- child_spec(arguments[:child_spec]) do
-          ref = Process.monitor(pid)
-          options[:module].terminate_child(arguments[:supervisor], id)
-          await_exit(pid, ref, options[:termination_timeout], context.current_step)
-        end
-      else
-        :ok
-      end
+         {:ok, options} <- Spark.Options.validate(options, @opt_schema),
+         true <- Keyword.get(options, :terminate_on_undo?, true),
+         {:ok, %{id: id}} <- child_spec(arguments[:child_spec]) do
+      ref = Process.monitor(pid)
+      options[:module].terminate_child(arguments[:supervisor], id)
+      await_exit(pid, ref, options[:termination_timeout], context.current_step)
+    else
+      false -> :ok
+      error -> error
     end
   end
 
