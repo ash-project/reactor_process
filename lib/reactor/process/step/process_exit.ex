@@ -55,15 +55,19 @@ defmodule Reactor.Process.Step.ProcessExit do
          {:ok, options} <- Spark.Options.validate(options, @opt_schema),
          {:ok, process} <- Keyword.fetch(arguments, :process),
          {:ok, reason} <- Keyword.fetch(arguments, :reason) do
-      if options[:wait_for_exit?] do
-        case terminate(process, reason, arguments[:timeout], context.current_step) do
-          :ok -> {:ok, reason}
-          {:error, reason} -> {:error, reason}
-        end
-      else
-        Process.exit(process, reason)
-        {:ok, reason}
+      send_exit(process, reason, arguments[:timeout], options, context)
+    end
+  end
+
+  defp send_exit(process, reason, timeout, options, context) do
+    if options[:wait_for_exit?] do
+      case terminate(process, reason, timeout, context.current_step) do
+        :ok -> {:ok, reason}
+        {:error, reason} -> {:error, reason}
       end
+    else
+      Process.exit(process, reason)
+      {:ok, reason}
     end
   end
 end
