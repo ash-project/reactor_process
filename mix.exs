@@ -67,7 +67,7 @@ defmodule Reactor.Process.MixProject do
       {:git_ops, "~> 2.6", only: ~w[dev test]a, runtime: false},
       {:igniter, "~> 0.6", only: ~w[dev test]a},
       {:mix_audit, "~> 2.0", only: ~w[dev test]a, runtime: false},
-      {:reactor, "== 0.17.0"},
+      {:reactor, "== 1.0.0"},
       {:spark, "~> 2.0"}
     ]
   end
