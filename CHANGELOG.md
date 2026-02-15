@@ -12,6 +12,15 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v0.4.3](https://github.com/ash-project/reactor_process/compare/v0.4.2...v0.4.3) (2026-02-15)
+
+
+
+
+### Bug Fixes:
+
+* tests: verifiers no longer raise by dependabot[bot] [(#5)](https://github.com/ash-project/reactor_process/pull/5)
+
 ## [v0.4.2](https://github.com/ash-project/reactor_process/compare/v0.4.1...v0.4.2) (2025-06-10)
 
 
