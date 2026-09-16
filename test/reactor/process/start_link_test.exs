@@ -37,4 +37,10 @@ defmodule Reactor.Process.StartLinkTest do
     assert {:error, _error} = Reactor.run(StartLinkReactor, %{fail?: true})
     assert {:links, []} = Process.info(self(), :links)
   end
+
+  test "`can?/2` treats a bare module as undoable" do
+    step = Reactor.Builder.new_step!(:start_link, Reactor.Process.Step.StartLink)
+
+    assert Reactor.Step.can?(step, :undo)
+  end
 end

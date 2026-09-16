@@ -88,7 +88,7 @@ defmodule Reactor.Process.Step.TerminateChild do
   @doc false
   @impl true
   def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :restart_on_undo?, true)
-  def can?(_, :undo), do: false
+  def can?(_, :undo), do: true
   def can?(step, capability), do: super(step, capability)
 
   @doc false

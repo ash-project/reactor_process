@@ -60,6 +60,12 @@ defmodule Reactor.Process.TerminateChildTest do
     assert %{active: 1, specs: 1} = Supervisor.count_children(pid)
   end
 
+  test "`can?/2` treats a bare module as undoable" do
+    step = Reactor.Builder.new_step!(:terminate_child, Reactor.Process.Step.TerminateChild)
+
+    assert Reactor.Step.can?(step, :undo)
+  end
+
   test "it fails verification when `restart_on_undo?` is `true` but the module doesn't support it" do
     logs =
       capture_io(:stderr, fn ->

@@ -93,8 +93,8 @@ defmodule Reactor.Process.Step.StartChild do
 
   @doc false
   @impl true
-  def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :terminate_on_undo?, false)
-  def can?(_, :undo), do: false
+  def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :terminate_on_undo?, true)
+  def can?(_, :undo), do: true
   def can?(step, capability), do: super(step, capability)
 
   @doc false
