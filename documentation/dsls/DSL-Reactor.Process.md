@@ -27,11 +27,11 @@ See the documentation for `Supervisor.count_children/1` for more information.
 ### Examples
 ```
 start_link :supervisor do
-  child_spec value({Supervisor, strategy: :one_for_one}
+  child_spec value({Supervisor, strategy: :one_for_one})
 end
 
 count_children :children do
-  supervisor result(:supervisor)
+  supervisor result(:supervisor, [:pid])
 end
 
 ```
@@ -779,11 +779,11 @@ See the documentation for `Supervisor.start_child/2` for more information.
 ### Examples
 ```
 start_link :supervisor do
-  child_spec value({Supervisor, strategy: :one_for_one}
+  child_spec value({Supervisor, strategy: :one_for_one})
 end
 
 start_child :worker do
-  supervisor result(:supervisor)
+  supervisor result(:supervisor, [:pid])
   child_spec value({Agent, initial_value: 0})
 end
 

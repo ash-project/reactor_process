@@ -58,11 +58,18 @@ start_child :server do
   child_spec result(:server_spec)
 end
 
-# Don't fail if already started
+# Don't fail if already started.
+# The result has started?: false and undo leaves the child alone.
 start_child :idempotent_worker do
   supervisor input(:supervisor)
   child_spec result(:worker_spec)
   fail_on_already_started? false
+end
+
+# Both steps return a result struct. Read the pid with a sub path.
+process_exit :stop_worker do
+  process result(:worker, [:pid])
+  reason value(:shutdown)
 end
 ```
 
@@ -180,7 +187,7 @@ end
 ```elixir
 # Wait for supervisor to be ready
 start_child :dependent_worker do
-  supervisor result(:supervisor_start)
+  supervisor result(:supervisor_start, [:pid])
   child_spec result(:worker_spec)
   wait_for [:supervisor_start]
 end
@@ -284,20 +291,20 @@ defmodule MyAppReactor do
 
   # Start database
   start_child :database do
-    supervisor result(:main_supervisor)
+    supervisor result(:main_supervisor, [:pid])
     child_spec result(:database_spec)
   end
 
   # Start server after database
   start_child :server do
-    supervisor result(:main_supervisor)
+    supervisor result(:main_supervisor, [:pid])
     child_spec result(:server_spec)
     wait_for [:database]
   end
 
   # Health monitoring
   count_children :monitor do
-    supervisor result(:main_supervisor)
+    supervisor result(:main_supervisor, [:pid])
   end
 end
 ```

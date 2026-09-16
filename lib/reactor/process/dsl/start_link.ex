@@ -18,7 +18,7 @@ defmodule Reactor.Process.Dsl.StartLink do
             guards: [],
             name: nil,
             terminate_on_undo?: true,
-            termination_reason: :normal,
+            termination_reason: :kill,
             termination_timeout: 5_000
 
   @type t :: %__MODULE__{

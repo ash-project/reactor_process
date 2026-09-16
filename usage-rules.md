@@ -31,7 +31,9 @@ This file contains essential information for AI coding agents when working with 
 ### start_link
 - **Required**: `child_spec` 
 - **Purpose**: Links process to Reactor process (not supervisor)
-- **Auto-cleanup**: Terminates process on undo by default
+- **Returns**: `%Reactor.Process.Step.StartLink.Result{pid: pid | nil, started?: boolean}` - use `result(:step_name, [:pid])` to pass the pid to another step
+- **Ownership**: `started?` is `true` only when this step started the process. The step returns an already started process with `started?: false` and does not link to it. `:ignore` gives `pid: nil`
+- **Auto-cleanup**: Terminates process on undo by default. Undo never terminates a process with `started?: false`
 
 ### start_child  
 - **Required**: `supervisor`, `child_spec`

@@ -40,11 +40,11 @@ defmodule Reactor.Process.Dsl.CountChildren do
       examples: [
         """
         start_link :supervisor do
-          child_spec value({Supervisor, strategy: :one_for_one}
+          child_spec value({Supervisor, strategy: :one_for_one})
         end
 
         count_children :children do
-          supervisor result(:supervisor)
+          supervisor result(:supervisor, [:pid])
         end
         """
       ],

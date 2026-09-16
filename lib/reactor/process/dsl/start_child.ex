@@ -52,11 +52,11 @@ defmodule Reactor.Process.Dsl.StartChild do
       examples: [
         """
         start_link :supervisor do
-          child_spec value({Supervisor, strategy: :one_for_one}
+          child_spec value({Supervisor, strategy: :one_for_one})
         end
 
         start_child :worker do
-          supervisor result(:supervisor)
+          supervisor result(:supervisor, [:pid])
           child_spec value({Agent, initial_value: 0})
         end
         """
