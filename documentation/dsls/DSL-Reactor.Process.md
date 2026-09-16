@@ -806,7 +806,6 @@ end
 | [`fail_on_already_present?`](#reactor-start_child-fail_on_already_present?){: #reactor-start_child-fail_on_already_present? } | `boolean` | `true` | Whether the step should fail if the child spec is already present in the supervisor |
 | [`fail_on_already_started?`](#reactor-start_child-fail_on_already_started?){: #reactor-start_child-fail_on_already_started? } | `boolean` | `true` | Whether the step should fail if the start function returns an already started error |
 | [`terminate_on_undo?`](#reactor-start_child-terminate_on_undo?){: #reactor-start_child-terminate_on_undo? } | `boolean` | `true` | Whether to terminate the started process when the Reactor is undoing changes |
-| [`termination_reason`](#reactor-start_child-termination_reason){: #reactor-start_child-termination_reason } | `any` | `:kill` | The reason to give to the process when terminating it |
 | [`termination_timeout`](#reactor-start_child-termination_timeout){: #reactor-start_child-termination_timeout } | `timeout` | `5000` | How long to wait for a process to terminate |
 
 

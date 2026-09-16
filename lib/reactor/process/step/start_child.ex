@@ -52,12 +52,6 @@ defmodule Reactor.Process.Step.StartChild do
                   doc:
                     "Whether to terminate the started process when the Reactor is undoing changes"
                 ],
-                termination_reason: [
-                  type: :any,
-                  required: false,
-                  default: :kill,
-                  doc: "The reason to give to the process when terminating it"
-                ],
                 termination_timeout: [
                   type: :timeout,
                   required: false,

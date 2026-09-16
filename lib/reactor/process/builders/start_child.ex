@@ -30,7 +30,6 @@ defimpl Reactor.Dsl.Build, for: Reactor.Process.Dsl.StartChild do
       if step.terminate_on_undo? do
         [
           terminate_on_undo?: true,
-          termination_reason: step.termination_reason,
           termination_timeout: step.termination_timeout
         ]
       else

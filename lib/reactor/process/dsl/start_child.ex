@@ -20,7 +20,6 @@ defmodule Reactor.Process.Dsl.StartChild do
             name: nil,
             supervisor: nil,
             terminate_on_undo?: true,
-            termination_reason: :normal,
             termination_timeout: 5_000
 
   @type t :: %__MODULE__{
@@ -36,7 +35,6 @@ defmodule Reactor.Process.Dsl.StartChild do
           name: any,
           supervisor: Template.t() | Supervisor.supervisor(),
           terminate_on_undo?: boolean,
-          termination_reason: any,
           termination_timeout: timeout
         }
 
@@ -123,12 +121,6 @@ defmodule Reactor.Process.Dsl.StartChild do
           required: false,
           default: true,
           doc: "Whether to terminate the started process when the Reactor is undoing changes"
-        ],
-        termination_reason: [
-          type: :any,
-          required: false,
-          default: :kill,
-          doc: "The reason to give to the process when terminating it"
         ],
         termination_timeout: [
           type: :timeout,
