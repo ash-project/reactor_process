@@ -31,14 +31,41 @@ defmodule Reactor.Process.StartChildTest do
     return :start_child
   end
 
+  defmodule ReuseChildReactor do
+    @moduledoc false
+    use Reactor, extensions: [Reactor.Process]
+
+    input :fail?
+    input :supervisor
+    input :child_spec
+
+    start_child :start_child do
+      supervisor input(:supervisor)
+      child_spec(input(:child_spec))
+      fail_on_already_present? false
+      fail_on_already_started? false
+    end
+
+    flunk :fail, "abort" do
+      wait_for :start_child
+      argument :fail?, input(:fail?)
+
+      where & &1.arguments.fail?
+    end
+
+    return :start_child
+  end
+
+  @child_spec {Support.StubServer, on_init: {:ok, nil}}
+
   test "it adds the child to the supervisor" do
     {:ok, pid} =
       Supervisor.start_link([], strategy: :one_for_one)
 
-    assert {:ok, child} =
+    assert {:ok, %StartChild.Result{pid: child, id: Support.StubServer, started?: true}} =
              Reactor.run(StartChildReactor, %{
                supervisor: pid,
-               child_spec: {Support.StubServer, on_init: {:ok, nil}},
+               child_spec: @child_spec,
                fail?: false
              })
 
@@ -54,12 +81,78 @@ defmodule Reactor.Process.StartChildTest do
     assert {:error, error} =
              Reactor.run(StartChildReactor, %{
                supervisor: pid,
-               child_spec: {Support.StubServer, on_init: {:ok, nil}},
+               child_spec: @child_spec,
                fail?: true
              })
 
     assert Exception.message(error) =~ ~r/abort/
-    assert %{specs: 1, active: 0} = Supervisor.count_children(pid)
+    assert %{specs: 0, active: 0} = Supervisor.count_children(pid)
+  end
+
+  test "it returns an already started child with `started?: false`" do
+    {:ok, pid} = Supervisor.start_link([], strategy: :one_for_one)
+    {:ok, existing} = Supervisor.start_child(pid, @child_spec)
+
+    assert {:ok, %StartChild.Result{pid: ^existing, id: Support.StubServer, started?: false}} =
+             Reactor.run(ReuseChildReactor, %{
+               supervisor: pid,
+               child_spec: @child_spec,
+               fail?: false
+             })
+  end
+
+  test "it does not terminate an already started child on reactor failure" do
+    {:ok, pid} = Supervisor.start_link([], strategy: :one_for_one)
+    {:ok, existing} = Supervisor.start_child(pid, @child_spec)
+
+    assert {:error, error} =
+             Reactor.run(ReuseChildReactor, %{
+               supervisor: pid,
+               child_spec: @child_spec,
+               fail?: true
+             })
+
+    assert Exception.message(error) =~ ~r/abort/
+    assert Process.alive?(existing)
+    assert %{specs: 1, active: 1} = Supervisor.count_children(pid)
+  end
+
+  test "it restarts a child whose spec is present but which is not running" do
+    {:ok, pid} = Supervisor.start_link([], strategy: :one_for_one)
+    {:ok, stopped} = Supervisor.start_child(pid, @child_spec)
+    :ok = Supervisor.terminate_child(pid, Support.StubServer)
+
+    assert {:ok, %StartChild.Result{pid: child, id: Support.StubServer, started?: true}} =
+             Reactor.run(ReuseChildReactor, %{
+               supervisor: pid,
+               child_spec: @child_spec,
+               fail?: false
+             })
+
+    assert is_pid(child)
+    assert child != stopped
+    assert Process.alive?(child)
+    assert %{specs: 1, active: 1} = Supervisor.count_children(pid)
+  end
+
+  test "it terminates a restarted child on reactor failure without waiting for the termination timeout" do
+    {:ok, pid} = Supervisor.start_link([], strategy: :one_for_one)
+    {:ok, _stopped} = Supervisor.start_child(pid, @child_spec)
+    :ok = Supervisor.terminate_child(pid, Support.StubServer)
+
+    {elapsed_us, result} =
+      :timer.tc(fn ->
+        Reactor.run(ReuseChildReactor, %{
+          supervisor: pid,
+          child_spec: @child_spec,
+          fail?: true
+        })
+      end)
+
+    assert {:error, error} = result
+    assert Exception.message(error) =~ ~r/abort/
+    assert div(elapsed_us, 1000) < 1000
+    assert %{specs: 0, active: 0} = Supervisor.count_children(pid)
   end
 
   test "`can?/2` treats a bare module as undoable" do
@@ -86,14 +179,11 @@ defmodule Reactor.Process.StartChildTest do
     assert {:error, _error} =
              StartChild
              |> failing_builder_reactor()
-             |> Reactor.run(%{
-               supervisor: pid,
-               child_spec: {Support.StubServer, on_init: {:ok, nil}}
-             })
+             |> Reactor.run(%{supervisor: pid, child_spec: @child_spec})
 
-    assert_received {:child, child}
+    assert_received {:child, %StartChild.Result{pid: child, started?: true}}
     refute Process.alive?(child)
-    assert %{active: 0} = Supervisor.count_children(pid)
+    assert %{specs: 0, active: 0} = Supervisor.count_children(pid)
   end
 
   test "a builder-built step with no `terminate_on_undo?` option terminates the child on reactor failure" do
@@ -102,14 +192,11 @@ defmodule Reactor.Process.StartChildTest do
     assert {:error, _error} =
              {StartChild, []}
              |> failing_builder_reactor()
-             |> Reactor.run(%{
-               supervisor: pid,
-               child_spec: {Support.StubServer, on_init: {:ok, nil}}
-             })
+             |> Reactor.run(%{supervisor: pid, child_spec: @child_spec})
 
-    assert_received {:child, child}
+    assert_received {:child, %StartChild.Result{pid: child, started?: true}}
     refute Process.alive?(child)
-    assert %{active: 0} = Supervisor.count_children(pid)
+    assert %{specs: 0, active: 0} = Supervisor.count_children(pid)
   end
 
   defp failing_builder_reactor(impl) do

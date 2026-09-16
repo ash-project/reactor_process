@@ -36,6 +36,9 @@ This file contains essential information for AI coding agents when working with 
 ### start_child  
 - **Required**: `supervisor`, `child_spec`
 - **Purpose**: Adds child to supervisor
+- **Returns**: `%Reactor.Process.Step.StartChild.Result{pid: pid, id: child_id, started?: boolean}` - use `result(:step_name, [:pid])` to pass the pid to another step
+- **Ownership**: `started?` is `true` only when this step started the child. The step returns an already started child with `started?: false`
+- **Auto-cleanup**: Terminates the child and deletes its spec on undo by default. Undo never terminates a child with `started?: false`
 - **Module options**: `Supervisor` (default) or `DynamicSupervisor`
 
 ### terminate_child
@@ -103,10 +106,11 @@ end
 ### 2. Already started/present errors
 - **Cause**: Trying to start existing processes/specs
 - **Solution**: Set `fail_on_already_started?: false` or `fail_on_already_present?: false`
+- **Note**: With `fail_on_already_started?: false` the step reuses an already started child and undo leaves it alone. With `fail_on_already_present?: false` the step restarts a stopped child with `restart_child/2` and undo terminates it
 
 ### 3. DynamicSupervisor child_id confusion
 - **Cause**: Using atom ID instead of PID for DynamicSupervisor operations
-- **Solution**: Use the actual process PID returned from `start_child` for subsequent operations
+- **Solution**: Use the `pid` field of the `start_child` result (`result(:start_child, [:pid])`) for subsequent operations
 
 ### 4. Timeout errors during termination
 - **Cause**: Default 5s timeout too short for graceful shutdown
@@ -166,6 +170,7 @@ end
 - Does NOT support `restart_child` or `delete_child`
 - Children added dynamically via `start_child`
 - Set `module: DynamicSupervisor` in step options
+- `start_child` undo terminates by child id, which `DynamicSupervisor` does not accept. Set `terminate_on_undo? false` for `DynamicSupervisor`
 
 ## Performance Considerations
 
