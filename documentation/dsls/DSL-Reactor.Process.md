@@ -802,7 +802,7 @@ end
 |------|------|---------|------|
 | [`supervisor`](#reactor-start_child-supervisor){: #reactor-start_child-supervisor .spark-required} | `Reactor.Template.Element \| Reactor.Template.Input \| Reactor.Template.Result \| Reactor.Template.Value \| pid \| atom \| {:global, any} \| {:via, module, any} \| {atom, atom}` |  | The supervisor to query |
 | [`description`](#reactor-start_child-description){: #reactor-start_child-description } | `String.t` |  | An optional description for the step |
-| [`module`](#reactor-start_child-module){: #reactor-start_child-module } | `module` | `Supervisor` | The module to use. Must export `start_child/2` |
+| [`module`](#reactor-start_child-module){: #reactor-start_child-module } | `module` | `Supervisor` | The supervisor module. Must export `start_child/2` and `terminate_child/2`. `restart_child/2` and `delete_child/2` are called when exported |
 | [`fail_on_already_present?`](#reactor-start_child-fail_on_already_present?){: #reactor-start_child-fail_on_already_present? } | `boolean` | `true` | Whether the step should fail if the child spec is already present in the supervisor |
 | [`fail_on_already_started?`](#reactor-start_child-fail_on_already_started?){: #reactor-start_child-fail_on_already_started? } | `boolean` | `true` | Whether the step should fail if the start function returns an already started error |
 | [`terminate_on_undo?`](#reactor-start_child-terminate_on_undo?){: #reactor-start_child-terminate_on_undo? } | `boolean` | `true` | Whether to terminate the started process when the Reactor is undoing changes |

@@ -29,7 +29,8 @@ defmodule Reactor.Process.Step.StartChild do
                   type: :module,
                   required: false,
                   default: Supervisor,
-                  doc: "The module to use. Must export `count_children/1`"
+                  doc:
+                    "The supervisor module. Must export `start_child/2` and `terminate_child/2`. `restart_child/2` and `delete_child/2` are called when exported"
                 ],
                 fail_on_already_present?: [
                   type: :boolean,

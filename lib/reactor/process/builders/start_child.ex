@@ -37,7 +37,8 @@ defimpl Reactor.Dsl.Build, for: Reactor.Process.Dsl.StartChild do
       end
       |> Enum.concat(
         fail_on_already_present?: step.fail_on_already_present?,
-        fail_on_already_started?: step.fail_on_already_started?
+        fail_on_already_started?: step.fail_on_already_started?,
+        module: step.module
       )
 
     Builder.add_step(

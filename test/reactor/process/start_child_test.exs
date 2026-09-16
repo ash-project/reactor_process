@@ -56,6 +56,22 @@ defmodule Reactor.Process.StartChildTest do
     return :start_child
   end
 
+  defmodule StubModuleReactor do
+    @moduledoc false
+    use Reactor, extensions: [Reactor.Process]
+
+    input :supervisor
+    input :child_spec
+
+    start_child :start_child do
+      supervisor input(:supervisor)
+      child_spec(input(:child_spec))
+      module Support.StubSupervisorModule
+    end
+
+    return :start_child
+  end
+
   @child_spec {Support.StubServer, on_init: {:ok, nil}}
 
   test "it adds the child to the supervisor" do
@@ -152,6 +168,16 @@ defmodule Reactor.Process.StartChildTest do
     assert {:error, error} = result
     assert Exception.message(error) =~ ~r/abort/
     assert div(elapsed_us, 1000) < 1000
+    assert %{specs: 0, active: 0} = Supervisor.count_children(pid)
+  end
+
+  test "the DSL `module` option is passed to the step" do
+    {:ok, pid} = Supervisor.start_link([], strategy: :one_for_one)
+
+    assert {:error, error} =
+             Reactor.run(StubModuleReactor, %{supervisor: pid, child_spec: @child_spec})
+
+    assert Exception.message(error) =~ "Support.StubSupervisorModule"
     assert %{specs: 0, active: 0} = Supervisor.count_children(pid)
   end
 
