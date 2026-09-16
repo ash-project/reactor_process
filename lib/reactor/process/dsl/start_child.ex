@@ -20,7 +20,6 @@ defmodule Reactor.Process.Dsl.StartChild do
             name: nil,
             supervisor: nil,
             terminate_on_undo?: true,
-            termination_reason: :normal,
             termination_timeout: 5_000
 
   @type t :: %__MODULE__{
@@ -36,7 +35,6 @@ defmodule Reactor.Process.Dsl.StartChild do
           name: any,
           supervisor: Template.t() | Supervisor.supervisor(),
           terminate_on_undo?: boolean,
-          termination_reason: any,
           termination_timeout: timeout
         }
 
@@ -52,11 +50,11 @@ defmodule Reactor.Process.Dsl.StartChild do
       examples: [
         """
         start_link :supervisor do
-          child_spec value({Supervisor, strategy: :one_for_one}
+          child_spec value({Supervisor, strategy: :one_for_one})
         end
 
         start_child :worker do
-          supervisor result(:supervisor)
+          supervisor result(:supervisor, [:pid])
           child_spec value({Agent, initial_value: 0})
         end
         """
@@ -102,7 +100,8 @@ defmodule Reactor.Process.Dsl.StartChild do
           type: :module,
           required: false,
           default: Supervisor,
-          doc: "The module to use. Must export `start_child/2`"
+          doc:
+            "The supervisor module. Must export `start_child/2` and `terminate_child/2`. `restart_child/2` and `delete_child/2` are called when exported"
         ],
         fail_on_already_present?: [
           type: :boolean,
@@ -123,12 +122,6 @@ defmodule Reactor.Process.Dsl.StartChild do
           required: false,
           default: true,
           doc: "Whether to terminate the started process when the Reactor is undoing changes"
-        ],
-        termination_reason: [
-          type: :any,
-          required: false,
-          default: :kill,
-          doc: "The reason to give to the process when terminating it"
         ],
         termination_timeout: [
           type: :timeout,

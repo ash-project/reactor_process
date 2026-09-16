@@ -6,7 +6,7 @@ defmodule Support.StubServer do
   @moduledoc false
   use GenServer, restart: :transient
 
-  def start_link(args), do: GenServer.start_link(__MODULE__, args)
+  def start_link(args), do: GenServer.start_link(__MODULE__, args, Keyword.take(args, [:name]))
   @doc false
   @impl true
   def init(options) do

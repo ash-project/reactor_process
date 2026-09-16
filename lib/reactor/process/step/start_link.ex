@@ -58,6 +58,28 @@ defmodule Reactor.Process.Step.StartLink do
   will then use the `start` MFA returned by the module's `child_spec/1` function
   to start the child process.
 
+  ## Result
+
+  The step returns a `Reactor.Process.Step.StartLink.Result`. The `pid` field
+  is the child process. The `started?` field records whether this step started
+  the child.
+
+  When `fail_on_already_started?` is `false` and the child is already started,
+  the step returns that child with `started?: false`. The step does not link to
+  it.
+
+  When `fail_on_ignore?` is `false` and the start function returns `:ignore`,
+  the step returns `pid: nil` and `started?: false`.
+
+  ## Undo
+
+  Undo only acts on a child that this step started. Undo does not touch a
+  child with `started?: false`.
+
+  When `terminate_on_undo?` is `true`, undo unlinks the child, sends it an exit
+  signal with `termination_reason`, and waits up to `termination_timeout` for
+  it to exit.
+
   ## Arguments
 
   #{Spark.Options.docs(@arg_schema)}
@@ -69,6 +91,18 @@ defmodule Reactor.Process.Step.StartLink do
   use Reactor.Step
   alias Reactor.Process.Errors.MissingMiddlewareError
   import Reactor.Process.Utils
+
+  defmodule Result do
+    @moduledoc """
+    The result of a `start_link` step.
+    """
+    defstruct [:pid, started?: false]
+
+    @type t :: %__MODULE__{
+            pid: nil | pid,
+            started?: boolean
+          }
+  end
 
   @doc false
   @impl true
@@ -98,23 +132,21 @@ defmodule Reactor.Process.Step.StartLink do
   @doc false
   @impl true
   def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :terminate_on_undo?, true)
-  def can?(_, :undo), do: false
+  def can?(_, :undo), do: true
   def can?(step, capability), do: super(step, capability)
 
   @doc false
   @impl true
-  def undo(process, _, context, options) do
+  def undo(%Result{started?: false}, _arguments, _context, _options), do: :ok
+
+  def undo(%Result{pid: pid}, _arguments, context, options) do
     with {:ok, options} <- Spark.Options.validate(options, @opt_schema) do
-      if Keyword.get(options, :terminate_on_undo?, true) do
-        terminate(
-          process,
-          options[:termination_reason],
-          options[:termination_timeout],
-          context.current_step
-        )
-      else
-        :ok
-      end
+      terminate(
+        pid,
+        options[:termination_reason],
+        options[:termination_timeout],
+        context.current_step
+      )
     end
   end
 
@@ -125,20 +157,19 @@ defmodule Reactor.Process.Step.StartLink do
     case apply(module, function, args) do
       {:ok, pid} ->
         Process.link(pid)
-        {:ok, pid}
+        {:ok, %Result{pid: pid, started?: true}}
 
       :ignore when fail_on_ignore? == true ->
         {:error, "Child process returned `:ignore`"}
 
       :ignore ->
-        {:ok, :ignore}
+        {:ok, %Result{pid: nil, started?: false}}
 
       {:error, {:already_started, pid}} when fail_on_already_started? == true ->
         {:error, {:already_started, pid}}
 
       {:error, {:already_started, pid}} ->
-        Process.link(pid)
-        {:ok, pid}
+        {:ok, %Result{pid: pid, started?: false}}
 
       {:error, reason} ->
         {:error, reason}

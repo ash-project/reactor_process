@@ -20,12 +20,17 @@ A [Reactor](https://github.com/ash-project/reactor) extension that provides step
 ## Example
 
 The following example uses Reactor to start a supervisor and add children to it.
+`MyApp.RepoSupervisor` is a module-based `Supervisor` with no children of its
+own. Each `start_link` and `start_child` step returns a result struct. Read the
+supervisor pid with `result(:supervisor, [:pid])`.
 
 ```elixir
 defmodule StartAllReposReactor do
   use Reactor, extensions: [Reactor.Process]
 
-  start_supervisor :supervisor
+  start_link :supervisor do
+    child_spec {MyApp.RepoSupervisor, []}
+  end
 
   step :all_repos do
     run fn _ ->
@@ -42,7 +47,7 @@ defmodule StartAllReposReactor do
     end
 
     start_child :start_child do
-      supervisor result(:supervisor)
+      supervisor result(:supervisor, [:pid])
       child_spec element(:migrate_all_repos)
     end
   end
@@ -67,7 +72,7 @@ defmodule StartAllReposReactor do
   end
 end
 
-Reactor.run!(StartAllReposReactor, %{directory: "./to_reverse"})
+%Reactor.Process.Step.StartLink.Result{pid: supervisor} = Reactor.run!(StartAllReposReactor)
 ```
 
 ## Installation

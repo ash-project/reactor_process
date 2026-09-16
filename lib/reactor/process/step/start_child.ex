@@ -29,7 +29,8 @@ defmodule Reactor.Process.Step.StartChild do
                   type: :module,
                   required: false,
                   default: Supervisor,
-                  doc: "The module to use. Must export `count_children/1`"
+                  doc:
+                    "The supervisor module. Must export `start_child/2` and `terminate_child/2`. `restart_child/2` and `delete_child/2` are called when exported"
                 ],
                 fail_on_already_present?: [
                   type: :boolean,
@@ -52,12 +53,6 @@ defmodule Reactor.Process.Step.StartChild do
                   doc:
                     "Whether to terminate the started process when the Reactor is undoing changes"
                 ],
-                termination_reason: [
-                  type: :any,
-                  required: false,
-                  default: :kill,
-                  doc: "The reason to give to the process when terminating it"
-                ],
                 termination_timeout: [
                   type: :timeout,
                   required: false,
@@ -71,6 +66,31 @@ defmodule Reactor.Process.Step.StartChild do
 
   See the documentation for `Supervisor.start_child/2` for more information.
 
+  ## Result
+
+  The step returns a `Reactor.Process.Step.StartChild.Result`. The `pid` field
+  is the child process. The `id` field is the id from the child spec. The
+  `started?` field records whether this step started the child.
+
+  When `fail_on_already_started?` is `false` and the child is already started,
+  the step returns that child with `started?: false`.
+
+  When `fail_on_already_present?` is `false` and the child spec is present but
+  the child is stopped, the step restarts the child with `restart_child/2` and
+  returns it with `started?: true`. If the supervisor module does not export
+  `restart_child/2`, the step fails with `{:error, :already_present}`.
+
+  ## Undo
+
+  Undo only acts on a child that this step started. Undo does not touch a
+  child with `started?: false`.
+
+  When `terminate_on_undo?` is `true`, undo terminates the child with
+  `terminate_child/2`, waits for it to exit, and then removes the child spec
+  with `delete_child/2`. This returns the supervisor to the state it had before
+  the step ran. If the supervisor module does not export `delete_child/2`, the
+  child spec stays in the supervisor.
+
   ## Arguments
 
   #{Spark.Options.docs(@arg_schema)}
@@ -82,62 +102,102 @@ defmodule Reactor.Process.Step.StartChild do
   use Reactor.Step
   import Reactor.Process.Utils
 
+  defmodule Result do
+    @moduledoc """
+    The result of a `start_child` step.
+    """
+    defstruct [:pid, :id, started?: false]
+
+    @type t :: %__MODULE__{
+            pid: pid,
+            id: term,
+            started?: boolean
+          }
+  end
+
   @doc false
   @impl true
   def run(arguments, _context, options) do
     with {:ok, arguments} <- Spark.Options.validate(Enum.to_list(arguments), @arg_schema),
-         {:ok, options} <- Spark.Options.validate(options, @opt_schema) do
-      start_child(arguments, options)
+         {:ok, options} <- Spark.Options.validate(options, @opt_schema),
+         {:ok, %{id: id}} <- child_spec(arguments[:child_spec]) do
+      start_child(arguments, options, id)
     end
   end
 
   @doc false
   @impl true
-  def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :terminate_on_undo?, false)
-  def can?(_, :undo), do: false
+  def can?(%{impl: {_, options}}, :undo), do: Keyword.get(options, :terminate_on_undo?, true)
+  def can?(_, :undo), do: true
   def can?(step, capability), do: super(step, capability)
 
   @doc false
   @impl true
-  def undo(pid, arguments, context, options) do
+  def undo(%Result{started?: false}, _arguments, _context, _options), do: :ok
+
+  def undo(%Result{pid: pid, id: id}, arguments, context, options) do
     with {:ok, arguments} <- Spark.Options.validate(Enum.to_list(arguments), @arg_schema),
-         {:ok, options} <- Spark.Options.validate(options, @opt_schema),
-         true <- Keyword.get(options, :terminate_on_undo?, true),
-         {:ok, %{id: id}} <- child_spec(arguments[:child_spec]) do
+         {:ok, options} <- Spark.Options.validate(options, @opt_schema) do
       ref = Process.monitor(pid)
       options[:module].terminate_child(arguments[:supervisor], id)
-      await_exit(pid, ref, options[:termination_timeout], context.current_step)
-    else
-      false -> :ok
-      error -> error
+
+      with :ok <- await_exit(pid, ref, options[:termination_timeout], context.current_step) do
+        delete_child(options[:module], arguments[:supervisor], id)
+      end
     end
   end
 
-  defp start_child(arguments, options) do
+  defp start_child(arguments, options, id) do
     fail_on_already_started? = options[:fail_on_already_started?]
     fail_on_already_present? = options[:fail_on_already_present?]
 
     case options[:module].start_child(arguments[:supervisor], arguments[:child_spec]) do
-      {:ok, child} ->
-        {:ok, child}
+      {:ok, pid} ->
+        {:ok, %Result{pid: pid, id: id, started?: true}}
 
-      {:ok, child, _} ->
-        {:ok, child}
+      {:ok, pid, _} ->
+        {:ok, %Result{pid: pid, id: id, started?: true}}
 
-      {:error, {:already_started, child}} when fail_on_already_started? == true ->
-        {:error, {:already_started, child}}
+      {:error, {:already_started, pid}} when fail_on_already_started? == true ->
+        {:error, {:already_started, pid}}
 
-      {:error, {:already_started, child}} ->
-        {:ok, child}
+      {:error, {:already_started, pid}} ->
+        {:ok, %Result{pid: pid, id: id, started?: false}}
 
       {:error, :already_present} when fail_on_already_present? == true ->
         {:error, :already_present}
 
       {:error, :already_present} ->
-        {:ok, :already_present}
+        restart_child(arguments, options, id)
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp restart_child(arguments, options, id) do
+    module = options[:module]
+
+    if function_exported?(module, :restart_child, 2) do
+      case module.restart_child(arguments[:supervisor], id) do
+        {:ok, pid} -> {:ok, %Result{pid: pid, id: id, started?: true}}
+        {:ok, pid, _} -> {:ok, %Result{pid: pid, id: id, started?: true}}
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      {:error, :already_present}
+    end
+  end
+
+  defp delete_child(module, supervisor, id) do
+    if function_exported?(module, :delete_child, 2) do
+      case module.delete_child(supervisor, id) do
+        :ok -> :ok
+        {:error, :not_found} -> :ok
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      :ok
     end
   end
 end

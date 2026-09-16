@@ -30,7 +30,6 @@ defimpl Reactor.Dsl.Build, for: Reactor.Process.Dsl.StartChild do
       if step.terminate_on_undo? do
         [
           terminate_on_undo?: true,
-          termination_reason: step.termination_reason,
           termination_timeout: step.termination_timeout
         ]
       else
@@ -38,7 +37,8 @@ defimpl Reactor.Dsl.Build, for: Reactor.Process.Dsl.StartChild do
       end
       |> Enum.concat(
         fail_on_already_present?: step.fail_on_already_present?,
-        fail_on_already_started?: step.fail_on_already_started?
+        fail_on_already_started?: step.fail_on_already_started?,
+        module: step.module
       )
 
     Builder.add_step(
