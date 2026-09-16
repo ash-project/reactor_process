@@ -95,11 +95,7 @@ defmodule Reactor.Process.Step.TerminateChild do
   @impl true
   def undo(_, arguments, _context, options) do
     with {:ok, options} <- Spark.Options.validate(options, @opt_schema) do
-      if Keyword.get(options, :restart_on_undo?, false) do
-        restart_child(arguments, options)
-      else
-        :ok
-      end
+      restart_child(arguments, options)
     end
   end
 
