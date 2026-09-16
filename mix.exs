@@ -7,7 +7,7 @@ defmodule Reactor.Process.MixProject do
   A Reactor extension which provides steps for working with supervisors.
   """
 
-  @version "0.4.3"
+  @version "0.5.0"
   use Mix.Project
 
   def project do

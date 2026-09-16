@@ -12,6 +12,13 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v0.5.0](https://github.com/ash-project/reactor_process/compare/v0.4.3...v0.5.0) (2026-09-16)
+### Breaking Changes:
+
+* record ownership in `start_child`/`start_link` so undo does not stop a reused child (#42) by James Harton
+
+
+
 ## [v0.4.3](https://github.com/ash-project/reactor_process/compare/v0.4.2...v0.4.3) (2026-02-15)
 
 
